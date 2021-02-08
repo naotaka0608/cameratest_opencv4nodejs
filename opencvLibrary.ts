@@ -21,15 +21,34 @@ class OpencvLibrary
         this.depth = 0;
     }
 
-    Create = () : void => {
+    public Create = () : void => {
         this.cap = new cv.VideoCapture(0);
     }
 
-    Release = () : void => {
+    public Release = () : void => {
         this.cap.release()
     }
 
-    GetVideoCapture = () : any => {
+    public GetWidth = () : number => {
+        return this.frame.cols;        
+    }
+
+    public GetHeight = () : number => {
+        return this.frame.rows;       
+    }
+
+    public GetDepth = () : number => {
+        return this.frame.depth;      
+    }
+
+    public ConvertRGB2RGBA = (frame:any) : any => {
+        return frame.cvtColor(cv.COLOR_RGB2RGBA);
+    }
+    public ConvertRGB2BGRA = (frame:any) : any => {
+        return frame.cvtColor(cv.COLOR_RGB2BGRA);
+    }
+
+    public GetVideoCapture = () : any => {
         this.frame = this.cap.read();
 
         this.width = this.frame.cols;
@@ -69,7 +88,7 @@ class OpencvLibrary
                     return;
                 }
                 cv.drawDetection(
-                    this.frame,
+                    faceRegion,
                     eyeRect,
                     { color: new cv.Vec(0, 0, 255), segmentFraction: 4 });                        
             });

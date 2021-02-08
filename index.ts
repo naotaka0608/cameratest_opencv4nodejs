@@ -1,9 +1,11 @@
 import * as net from "net";
+import { OpencvLibrary } from "./opencvLibrary";
+import * as jpeg from 'jpeg-js';
+
 const port = 3000
 let timer: any = null;
+let flgBusy: boolean = false;
 
-
-import { OpencvLibrary } from "./opencvLibrary";
 const opencvLibrary: OpencvLibrary = new OpencvLibrary();
 
 
@@ -22,14 +24,54 @@ const server = net.createServer(socket => {
         if(data[0] == 49){
 
             timer = setInterval(() => {
-                const frame: any = opencvLibrary.GetVideoCapture();
 
-                socket.write(frame.getData());   
-            }, 600);    
+                if(!flgBusy) {
+                    flgBusy = true;
+
+                    // Get frame 顔検出と目の検出
+                    const frame: any = opencvLibrary.GetVideoCapture();
+                    const width: number = opencvLibrary.GetWidth();
+                    const height: number = opencvLibrary.GetHeight();
+
+                    
+                    // RGB -> BGRA
+                    let frameBGRA = opencvLibrary.ConvertRGB2BGRA(frame);
+                    
+
+                    // Byte to Jpeg
+                    let rawImageData = {
+                        data: frameBGRA.getData(),
+                        width: width,
+                        height: height,
+                    };
+
+                    const jpegImageData = jpeg.encode(rawImageData, 80);
+
+
+                    // Add header(JpegのバッファサイズをJpegデータの前に付加する)
+                    let jpegLength = new ArrayBuffer(4);
+
+                    jpegLength = ConvertInt32toArrayBuffer(jpegImageData.data.length);
+
+                    let jpegBufferSize = new Uint8Array(jpegLength);
+                    let allBufferSize = jpegBufferSize.length + jpegImageData.data.length;
+                    
+                    let sendData = new Uint8Array(allBufferSize);
+                    sendData = concatTypedArrays(jpegBufferSize, jpegImageData.data);
+
+                    // Send
+                    socket.write(sendData);   
+
+                    flgBusy = false;
+                }
+                  
+            }, 10);    
         
         }else{
-            clearInterval(timer);
-            timer = false;
+            if(!flgBusy){
+                clearInterval(timer);
+                timer = false;    
+            }
         }
     });
 
@@ -52,3 +94,20 @@ const server = net.createServer(socket => {
 
 console.log('listening on port ' + port);
 
+
+
+
+// Int32 -> ArrayBuffer (Little Endian)
+const ConvertInt32toArrayBuffer = (num: number) : any => {
+    let b = new ArrayBuffer(4);
+    new DataView(b).setUint32(0, num);
+    return Array.from(new Uint8Array(b));
+}
+
+// Uint8Array 同士の結合
+const concatTypedArrays = (a: Uint8Array, b: Uint8Array) => { 
+    let c = new (Uint8Array)(a.length + b.length);
+    c.set(a, 0);
+    c.set(b, a.length);
+    return c;
+}

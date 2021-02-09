@@ -1,6 +1,7 @@
 import * as net from "net";
 import { OpencvLibrary } from "./opencvLibrary";
 import * as jpeg from 'jpeg-js';
+import * as microtime from "microtime";
 
 const port = 3000
 let timer: any = null;
@@ -27,6 +28,8 @@ const server = net.createServer(socket => {
 
                 if(!flgBusy) {
                     flgBusy = true;
+                    
+                    const start = microtime.now();
 
                     // Get frame 顔検出と目の検出
                     const frame: any = opencvLibrary.GetVideoFrame();
@@ -36,6 +39,8 @@ const server = net.createServer(socket => {
                     
                     // RGB -> BGRA
                     let frameBGRA = opencvLibrary.ConvertRGB2BGRA(frame);
+
+                    console.info('Convert RGB2BGRA time: ' + (microtime.now() - start) / 1000.0 + 'ms');
                     
 
                     // Byte -> Jpeg
@@ -46,6 +51,9 @@ const server = net.createServer(socket => {
                     };
 
                     const jpegImageData = jpeg.encode(rawImageData, 50);
+
+                    console.info('Jpegencode time: ' + (microtime.now() - start) / 1000.0 + 'ms');
+
 
 
                     // Add header(JpegのバッファサイズをJpegデータの前に付加する)
@@ -59,8 +67,14 @@ const server = net.createServer(socket => {
                     let sendData = new Uint8Array(allBufferSize);
                     sendData = concatTypedArrays(jpegBufferSize, jpegImageData.data);
 
-                    // Send Data
+                    console.info('Add header time: ' + (microtime.now() - start) / 1000.0 + 'ms');
+
+
+
+                    // Send data
                     socket.write(sendData);   
+
+                    console.info('Send data time: ' + (microtime.now() - start) / 1000.0 + 'ms');
 
                     flgBusy = false;
                 }

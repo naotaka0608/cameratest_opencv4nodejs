@@ -24,7 +24,7 @@ const server = net.createServer(socket => {
 
             timer = setInterval(() => {
 
-                const frame: any = opencvLibrary.GetVideoCapture();
+                const frame: any = opencvLibrary.GetVideoFrame();
                 const width: number = opencvLibrary.GetWidth();
                 const height: number = opencvLibrary.GetHeight();
 

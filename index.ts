@@ -29,7 +29,7 @@ const server = net.createServer(socket => {
                     flgBusy = true;
 
                     // Get frame 顔検出と目の検出
-                    const frame: any = opencvLibrary.GetVideoCapture();
+                    const frame: any = opencvLibrary.GetVideoFrame();
                     const width: number = opencvLibrary.GetWidth();
                     const height: number = opencvLibrary.GetHeight();
 
@@ -38,14 +38,14 @@ const server = net.createServer(socket => {
                     let frameBGRA = opencvLibrary.ConvertRGB2BGRA(frame);
                     
 
-                    // Byte to Jpeg
+                    // Byte -> Jpeg
                     let rawImageData = {
                         data: frameBGRA.getData(),
                         width: width,
                         height: height,
                     };
 
-                    const jpegImageData = jpeg.encode(rawImageData, 80);
+                    const jpegImageData = jpeg.encode(rawImageData, 50);
 
 
                     // Add header(JpegのバッファサイズをJpegデータの前に付加する)
@@ -59,7 +59,7 @@ const server = net.createServer(socket => {
                     let sendData = new Uint8Array(allBufferSize);
                     sendData = concatTypedArrays(jpegBufferSize, jpegImageData.data);
 
-                    // Send
+                    // Send Data
                     socket.write(sendData);   
 
                     flgBusy = false;

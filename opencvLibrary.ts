@@ -1,4 +1,4 @@
-const cv = require('opencv4nodejs');
+import * as cv from 'opencv4nodejs'
 
 class OpencvLibrary
 {
@@ -48,7 +48,7 @@ class OpencvLibrary
         return frame.cvtColor(cv.COLOR_RGB2BGRA);
     }
 
-    public GetVideoCapture = () : any => {
+    public GetVideoFrame = () : any => {
         this.frame = this.cap.read();
 
         this.width = this.frame.cols;
@@ -75,7 +75,7 @@ class OpencvLibrary
             cv.drawDetection(
                 this.frame,
                 faceRect,
-                { color: new cv.Vec(0, 0, 255), segmentFraction: 4 });
+                { color: new cv.Vec3(0, 0, 255), segmentFraction: 4 });
 
                 
             const faceRegion = this.frame.getRegion(faceRect);
@@ -90,7 +90,7 @@ class OpencvLibrary
                 cv.drawDetection(
                     faceRegion,
                     eyeRect,
-                    { color: new cv.Vec(0, 0, 255), segmentFraction: 4 });                        
+                    { color: new cv.Vec3(0, 0, 255), segmentFraction: 4 });                        
             });
             
         });

@@ -51,6 +51,11 @@ class OpencvLibrary
     public GetVideoFrame = () : any => {
         this.frame = this.cap.read();
 
+        return this.frame;
+    }
+
+    public DetectFace = () : any => {
+
         this.width = this.frame.cols;
         this.height = this.frame.rows;
         this.depth = this.frame.depth;
@@ -65,6 +70,7 @@ class OpencvLibrary
             console.log('No faces detected!');
         }
 
+        const frameTmp = this.frame.copy();
 
         const minDetections = 10;
         faceResult.objects.forEach((faceRect:any, i:number) => {
@@ -73,12 +79,12 @@ class OpencvLibrary
             }                    
              
             cv.drawDetection(
-                this.frame,
+                frameTmp,
                 faceRect,
                 { color: new cv.Vec3(0, 0, 255), segmentFraction: 4 });
 
                 
-            const faceRegion = this.frame.getRegion(faceRect);
+            const faceRegion = frameTmp.getRegion(faceRect);
             const eyeResult = this.eyeClassifier.detectMultiScale(faceRegion);
             console.log('eyeRects:', eyeResult.objects);
             console.log('confidences:', eyeResult.numDetections);
@@ -95,7 +101,7 @@ class OpencvLibrary
             
         });
 
-        return this.frame;
+        return frameTmp;
     }
 }
 
